@@ -31,8 +31,8 @@ def add_sgtask_info(org, repo, pr, dry_run=False):
                 body = gh_pr.issue().body
                 if not body:
                     body = ''
-                body += '\n\n' + task_comment
-                body = gh_pr.issue().edit(body=body)
+                if task_comment not in body:
+                    body += '\n\n' + task_comment
+                    body = gh_pr.issue().edit(body=body)
                 # return github.gh_call(gh_pr.create_comment, task_comment)
-
         
