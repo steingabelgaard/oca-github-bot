@@ -76,7 +76,7 @@ def temporary_clone(org, repo, branch):
         "--quiet",
         "--force",
         "--prune",
-        repo_url,
+        repo_url_with_token,
         "refs/heads/*:refs/heads/*",
     ]
     retry_on_exception(
@@ -101,7 +101,7 @@ def temporary_clone(org, repo, branch):
             "--branch",
             branch,
             "--",
-            repo_url,
+            repo_url_with_token,
             tempdir,
         ]
         check_call(clone_cmd, cwd=".")
