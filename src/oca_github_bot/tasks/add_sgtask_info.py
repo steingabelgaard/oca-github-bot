@@ -20,7 +20,7 @@ def add_sgtask_info(org, repo, pr, dry_run=False):
             name = False
             with odoo_client.login() as odoo:
                 Tasks = odoo.env['project.task']
-                task_ids = Tasks.search([('code', '=', m[0])])
+                task_ids = Tasks.search([('code', '=', match[0])])
                 for task in Tasks.browse(task_ids):
                     name = task.name
                     url = 'https://adm.steingabelgaard.dk/mail/view?model=project.task&res_id=%d' % task.id
