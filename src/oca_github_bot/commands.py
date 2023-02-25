@@ -9,7 +9,7 @@ BOT_COMMAND_RE = re.compile(
     # Do not start with > (Github comment), not consuming it
     r"^(?=[^>])"
     # Anything before /ocabot, at least one whitspace after
-    r".*/ocabot\s+"
+    r".*/sgbot\s+"
     # command group: any word is ok
     r"(?P<command>\w+)"
     # options group: spaces and words, all the times you want (0 is ok too)
