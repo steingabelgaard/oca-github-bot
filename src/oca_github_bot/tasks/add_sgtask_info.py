@@ -27,9 +27,11 @@ def add_sgtask_info(org, repo, pr, dry_run=False):
                     code = task.code
                     break
             if name:
-                task_comment = "\n\nTask [%s - %s](%s)" %(code, name, url)
+                task_comment = "Task [%s - %s](%s)" %(code, name, url)
                 body = gh_pr.issue().body
-                body += task_comment
+                if not body:
+                    body = ''
+                body += '\n\n' + task_comment
                 body = gh_pr.issue().edit(body=body)
                 # return github.gh_call(gh_pr.create_comment, task_comment)
 
