@@ -9,4 +9,5 @@ from . import (
     tag_approved,
     tag_needs_review,
     tag_ready_to_merge,
+    add_sgtask_info,
 )

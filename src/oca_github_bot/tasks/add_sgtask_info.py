@@ -1,0 +1,32 @@
+# Copyright 2019 Simone Rubino - Agile Business Group
+# Distributed under the MIT License (http://opensource.org/licenses/MIT).
+
+from .. import github, odoo_client
+from ..config import switchable
+from ..queue import getLogger, task
+import re
+
+_logger = getLogger(__name__)
+
+
+@task()
+@switchable("add_sgtask_info")
+def add_sgtask_info(org, repo, pr, dry_run=False):
+    with github.login() as gh:
+        gh_pr = gh.pull_request(org, repo, pr)
+        pr_branch = gh_pr.head.ref
+        if 'issue' in pr_branch:
+            match = re.findall(r'-issue(\d+)-', pr_branch)
+            name = False
+            with odoo_client as odoo:
+                Tasks = odoo.env['project.task']
+                task_ids = Tasks.search([('code', '=', m[0])])
+                for task in Tasks.browse(task_ids):
+                    name = task.name
+                    url = 'https://adm.steingabelgaard.dk/mail/view?model=project.task&res_id=%d' % task.id
+                    break
+            if name:
+                task_comment = "Task [%s](%s)" %( name, url)
+                return github.gh_call(gh_pr.create_comment, task_comment)
+
+        
