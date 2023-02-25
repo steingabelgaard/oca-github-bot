@@ -1,0 +1,97 @@
+version: '2'
+services:
+  queue:
+    image: redis:4-alpine
+    restart: unless-stopped
+    volumes:
+      - ./data/queue:/data
+    command: redis-server --appendonly yes --auto-aof-rewrite-min-size 64mb --auto-aof-rewrite-percentage 10
+  bot:
+    build: .
+    links:
+      - queue
+    # ports:
+    #  - 8080:8080
+    user: "${UID}:${GID}"
+    env_file:
+      - ./environment
+    volumes:
+      - ./data/cache:/app/run/.cache
+      - ./data/simple-index:/app/run/simple-index
+    restart: unless-stopped
+    command: python -m oca_github_bot
+    depends_on:
+      - queue
+    networks:
+      default:
+      inverseproxy_shared:
+    labels:
+      # Frontend bot
+      - traefik.enable=true
+      - traefik.docker.network=inverseproxy_shared
+      - traefik.flower.port: 8080
+      - traefik.http.routers.flower.entrypoints:websecure
+      - traefik.http.routers.flower.rule=Host(`sgbot.dc4.steingabelgaard.dk`)
+      - traefik.http.services.flower.loadbalancer.server.port=8080
+      - "traefik.http.routers.flower.tls.certresolver=letsencrypt"
+  worker:
+    build: .
+    links:
+      - queue
+    user: "${UID}:${GID}"
+    env_file:
+      - ./environment
+    volumes:
+      - ./data/cache:/app/run/.cache
+      - ./data/simple-index:/app/run/simple-index
+    restart: unless-stopped
+    command: celery --app=oca_github_bot.queue.app worker --concurrency=2 --loglevel=INFO
+    depends_on:
+      - queue
+  beat:
+    build: .
+    links:
+      - queue
+    user: "${UID}:${GID}"
+    env_file:
+      - ./environment
+    volumes:
+      - ./data/cache:/app/run/.cache
+      - ./data/simple-index:/app/run/simple-index
+    restart: unless-stopped
+    command: celery --app=oca_github_bot.queue.app beat
+    depends_on:
+      - queue
+  monitor:
+    build: .
+    links:
+      - queue
+    # ports:
+    #  - 5555:5555
+    user: "${UID}:${GID}"
+    env_file:
+      - ./environment
+    restart: unless-stopped
+    command: celery --app=oca_github_bot.queue.app flower
+    networks:
+      default:
+      inverseproxy_shared:
+    depends_on:
+      - queue
+    labels:
+      # Frontend monitor
+      - traefik.enable=true
+      - traefik.docker.network=inverseproxy_shared
+      - traefik.flower.port: 5555
+      - traefik.http.routers.flower.entrypoints:websecure
+      - traefik.http.routers.flower.rule=Host(`flower.dc4.steingabelgaard.dk`)
+      - traefik.http.services.flower.loadbalancer.server.port=5555
+      - "traefik.http.routers.flower.tls.certresolver=letsencrypt"
+
+networks:
+  default:
+    driver_opts:
+      encrypted: 1
+
+  inverseproxy_shared:
+    external: true
