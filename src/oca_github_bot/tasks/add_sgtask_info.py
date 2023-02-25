@@ -18,7 +18,7 @@ def add_sgtask_info(org, repo, pr, dry_run=False):
         if 'issue' in pr_branch:
             match = re.findall(r'-issue(\d+)-', pr_branch)
             name = False
-            with odoo_client as odoo:
+            with odoo_client.login() as odoo:
                 Tasks = odoo.env['project.task']
                 task_ids = Tasks.search([('code', '=', m[0])])
                 for task in Tasks.browse(task_ids):
