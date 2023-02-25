@@ -24,9 +24,10 @@ def add_sgtask_info(org, repo, pr, dry_run=False):
                 for task in Tasks.browse(task_ids):
                     name = task.name
                     url = 'https://adm.steingabelgaard.dk/mail/view?model=project.task&res_id=%d' % task.id
+                    code = task.code
                     break
             if name:
-                task_comment = "Task [%s](%s)" %( name, url)
+                task_comment = "Task [%d - %s](%s)" %(code, name, url)
                 return github.gh_call(gh_pr.create_comment, task_comment)
 
         
