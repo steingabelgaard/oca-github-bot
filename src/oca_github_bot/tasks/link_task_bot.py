@@ -33,7 +33,7 @@ def task_link_start(org, repo, pr, username, task_code=None, dry_run=False):
             PRs = odoo.env['project.git.pullrequest']
             pr_ids = PRs.search([('url', '=', gh_pr.html_url)])
             if pr_ids and task_id:
-                pr_ids.write({'task_id': task_id})
+                PRs.browse(pr_ids[0]).write({'task_id': task_id})
             if comment:
                 return github.gh_call(gh_pr.create_comment, comment)
             else:

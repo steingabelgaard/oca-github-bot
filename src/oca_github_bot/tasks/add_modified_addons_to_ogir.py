@@ -43,4 +43,4 @@ def add_modified_addons_to_ogir(org, repo, pr, dry_run=False):
                 PRs = odoo.env['project.git.pullrequest']
                 pr_ids = PRs.search([('url', '=', pr.html_url)])
                 if pr_ids:
-                    pr_ids.write({'modified_addons': '\n'.join(modified_addons)})
+                    PRs.browse(pr_ids[0]).write({'modified_addons': '\n'.join(modified_addons)})
