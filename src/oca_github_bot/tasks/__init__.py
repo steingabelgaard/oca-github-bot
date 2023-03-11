@@ -10,4 +10,6 @@ from . import (
     tag_needs_review,
     tag_ready_to_merge,
     add_sgtask_info,
+    add_modified_addons_to_ogir,
+    link_task_bot,
 )

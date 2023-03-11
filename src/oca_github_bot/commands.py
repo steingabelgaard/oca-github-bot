@@ -118,6 +118,19 @@ class BotCommandMigrationIssue(BotCommand):
             org, repo, pr, username, module=self.module, dry_run=dry_run
         )
 
+class BotCommandTaskLink(BotCommand):
+    taskcode = None  # mandatory str: module name
+
+    def parse_options(self, options):
+        if len(options) == 1:
+            self.taskcode = options[0]
+        else:
+            raise InvalidOptionsError(self.name, options)
+
+    def delay(self, org, repo, pr, username, dry_run=False):
+        task_link_bot.task_link_start.delay(
+            org, repo, pr, username, task_code=self.task_code, dry_run=dry_run
+        )
 
 def parse_commands(text):
     """Parse a text and return an iterator of BotCommand objects."""
