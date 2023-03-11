@@ -5,6 +5,7 @@ import logging
 
 from ..router import router
 from ..tasks.delete_branch import delete_branch
+from ..tasks.update_pr_state import update_pr_state
 from ..version_branch import is_protected_branch
 
 _logger = logging.getLogger(__name__)
@@ -25,3 +26,4 @@ async def on_pr_close_delete_branch(event, gh, *args, **kwargs):
 
     if not forked and merged and not is_protected_branch(branch):
         delete_branch.delay(org, repo, branch)
+    update_pr_state.delay(org, repo, branch, merged)

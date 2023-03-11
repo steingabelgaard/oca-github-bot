@@ -12,4 +12,5 @@ from . import (
     add_sgtask_info,
     add_modified_addons_to_ogir,
     link_task_bot,
+    update_pr_state,
 )
