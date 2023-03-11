@@ -20,13 +20,21 @@ def task_link_start(org, repo, pr, username, task_code=None, dry_run=False):
                 task_id = task.id
                 break
             if not task_ids:
-                    comment = "Sorry, task %s could not be found!" % task_code
+                comment = "Sorry, task %s could not be found!" % task_code
             else:
-                    comment = "Linkd to Task [%s - %s](%s)" %(code, name, url)
+                task_comment = "Task [%s - %s](%s)" %(code, name, url)
+                body = gh_pr.issue().body
+                if not body:
+                    body = ''
+                if task_comment not in body:
+                    body += '\n\n' + task_comment
+                    body = gh_pr.issue().edit(body=body)
 
             PRs = odoo.env['project.git.pullrequest']
-            pr_ids = PRs.search([('url', '=', pr.html_url)])
+            pr_ids = PRs.search([('url', '=', gh_pr.html_url)])
             if pr_ids and task_id:
                 pr_ids.write({'task_id': task_id})
-
-            return github.gh_call(gh_pr.create_comment, comment)
+            if comment:
+                return github.gh_call(gh_pr.create_comment, comment)
+            else:
+                return
