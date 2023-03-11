@@ -5,6 +5,7 @@ import logging
 
 from ..router import router
 from ..tasks.mention_maintainer import mention_maintainer
+from ..tasks.add_modified_addons_to_ogir import add_modified_addons_to_ogir
 
 _logger = logging.getLogger(__name__)
 
@@ -18,3 +19,4 @@ async def on_pr_open_mention_maintainer(event, *args, **kwargs):
     org, repo = event.data["repository"]["full_name"].split("/")
     pr = event.data["pull_request"]["number"]
     mention_maintainer.delay(org, repo, pr)
+    add_modified_addons_to_ogir.delay(org, repo, pr)
