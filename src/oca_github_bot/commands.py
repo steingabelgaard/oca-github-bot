@@ -63,6 +63,8 @@ class BotCommand:
             return BotCommandRebase(name, options)
         elif name == "migration":
             return BotCommandMigrationIssue(name, options)
+        elif name == "task":
+            return BotCommandTaskLink(name, options)
         else:
             raise InvalidCommandError(name)
 
