@@ -121,11 +121,11 @@ class BotCommandMigrationIssue(BotCommand):
         )
 
 class BotCommandTaskLink(BotCommand):
-    taskcode = None  # mandatory str: module name
+    task_code = None  # mandatory str: module name
 
     def parse_options(self, options):
         if len(options) == 1:
-            self.taskcode = options[0]
+            self.task_code = options[0]
         else:
             raise InvalidOptionsError(self.name, options)
 
