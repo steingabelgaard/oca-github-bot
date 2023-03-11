@@ -3,7 +3,7 @@
 
 import re
 
-from .tasks import merge_bot, migration_issue_bot, rebase_bot
+from .tasks import merge_bot, migration_issue_bot, rebase_bot, link_task_bot
 
 BOT_COMMAND_RE = re.compile(
     # Do not start with > (Github comment), not consuming it
@@ -130,7 +130,7 @@ class BotCommandTaskLink(BotCommand):
             raise InvalidOptionsError(self.name, options)
 
     def delay(self, org, repo, pr, username, dry_run=False):
-        task_link_bot.task_link_start.delay(
+        link_task_bot.task_link_start.delay(
             org, repo, pr, username, task_code=self.task_code, dry_run=dry_run
         )
 
