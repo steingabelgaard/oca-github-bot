@@ -1,5 +1,8 @@
 from .. import github, odoo_client
 from ..config import switchable
+from ..queue import getLogger, task
+
+_logger = getLogger(__name__)
 
 @task()
 @switchable("task_link_bot")
