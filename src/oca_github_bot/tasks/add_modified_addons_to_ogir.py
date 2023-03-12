@@ -8,6 +8,7 @@ from ..manifest import (
     get_manifest,
     git_modified_addon_dirs,
     is_addon_dir,
+    git_modified_addons,
 )
 from ..process import check_call
 from ..queue import getLogger, task
