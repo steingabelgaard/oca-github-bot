@@ -34,7 +34,7 @@ def add_modified_addons_to_ogir(org, repo, pr, dry_run=False):
             )
             check_call(["git", "checkout", pr_branch], cwd=clonedir)
             modified_addons, _= git_modified_addons(clonedir, target_branch)
-
+            _logger.info('Modified: %s', modified_addons)
             # Remove not installable addons
             # (case where an addon becomes no more installable).
             # modified_addon_dirs = [
