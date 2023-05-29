@@ -29,11 +29,11 @@ services:
       # Frontend bot
       - traefik.enable=true
       - traefik.docker.network=inverseproxy_shared
-      - traefik.flower.port: 8080
-      - traefik.http.routers.flower.entrypoints:websecure
-      - traefik.http.routers.flower.rule=Host(`sgbot.dc4.steingabelgaard.dk`)
-      - traefik.http.services.flower.loadbalancer.server.port=8080
-      - "traefik.http.routers.flower.tls.certresolver=letsencrypt"
+      - traefik.sgbot.port=8080
+      - traefik.http.routers.sgbot.entrypoints=websecure
+      - traefik.http.routers.sgbot.rule=Host(`sgbot.dc4.steingabelgaard.dk`)
+      - traefik.http.services.sgbot.loadbalancer.server.port=8080
+      - traefik.http.routers.sgbot.tls.certresolver=letsencrypt
   worker:
     build: .
     links:
@@ -82,11 +82,11 @@ services:
       # Frontend monitor
       - traefik.enable=true
       - traefik.docker.network=inverseproxy_shared
-      - traefik.flower.port: 5555
-      - traefik.http.routers.flower.entrypoints:websecure
+      - traefik.flower.port=5555
+      - traefik.http.routers.flower.entrypoints=websecure
       - traefik.http.routers.flower.rule=Host(`flower.dc4.steingabelgaard.dk`)
       - traefik.http.services.flower.loadbalancer.server.port=5555
-      - "traefik.http.routers.flower.tls.certresolver=letsencrypt"
+      - traefik.http.routers.flower.tls.certresolver=letsencrypt
 
 networks:
   default:
