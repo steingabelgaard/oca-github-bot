@@ -19,6 +19,7 @@ _logger = getLogger(__name__)
 @task()
 @switchable("add_modified_addons_to_ogir")
 def add_modified_addons_to_ogir(org, repo, pr, dry_run=False):
+    _logger.info('In MODIFIED ADDONS')
     with github.login() as gh:
         gh_pr = gh.pull_request(org, repo, pr)
         target_branch = gh_pr.base.ref
@@ -40,8 +41,16 @@ def add_modified_addons_to_ogir(org, repo, pr, dry_run=False):
             # modified_addon_dirs = [
             #    d for d in modified_addon_dirs if is_addon_dir(d, installable_only=True)
             # ]
+            # github.gh_call(gh_pr.create_comment, 'modified_addons: ' + '\n'.join(modified_addons))
+            task_comment = "Addons:\n" + '\n'.join(modified_addons)
+            body = gh_pr.issue().body
+            if not body:
+                body = ''
+            if task_comment not in body:
+                body += '\n\n' + task_comment
+                body = gh_pr.issue().edit(body=body)
             with odoo_client.login() as odoo:
                 PRs = odoo.env['project.git.pullrequest']
-                pr_ids = PRs.search([('url', '=', pr.html_url)])
+                pr_ids = PRs.search([('url', '=', gh_pr.html_url)])
                 if pr_ids:
                     PRs.browse(pr_ids[0]).write({'modified_addons': '\n'.join(modified_addons)})

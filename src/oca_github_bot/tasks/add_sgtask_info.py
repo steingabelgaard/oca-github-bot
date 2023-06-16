@@ -15,7 +15,7 @@ def add_sgtask_info(org, repo, pr, dry_run=False):
     with github.login() as gh:
         gh_pr = gh.pull_request(org, repo, pr)
         pr_branch = gh_pr.head.ref
-        if 'issue' in pr_branch and repo.private:  # TODO: Show other (shorter) info on non private repos?
+        if 'issue' in pr_branch and gh_pr.repository.private:  # TODO: Show other (shorter) info on non private repos?
             match = re.findall(r'-issue(\d+)-', pr_branch)
             name = False
             with odoo_client.login() as odoo:

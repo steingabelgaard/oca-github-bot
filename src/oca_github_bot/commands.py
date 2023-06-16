@@ -3,7 +3,7 @@
 
 import re
 
-from .tasks import merge_bot, migration_issue_bot, rebase_bot, link_task_bot
+from .tasks import merge_bot, migration_issue_bot, rebase_bot, link_task_bot, add_modified_addons_to_ogir, beta_bot
 
 BOT_COMMAND_RE = re.compile(
     # Do not start with > (Github comment), not consuming it
@@ -65,6 +65,10 @@ class BotCommand:
             return BotCommandMigrationIssue(name, options)
         elif name == "task":
             return BotCommandTaskLink(name, options)
+        elif name == "addons":
+            return BotCommandModifiedAddons(name, options)
+        elif name == "beta":
+            return BotCommandBetaMerge(name, options)
         else:
             raise InvalidCommandError(name)
 
@@ -133,6 +137,21 @@ class BotCommandTaskLink(BotCommand):
         link_task_bot.task_link_start.delay(
             org, repo, pr, username, task_code=self.task_code, dry_run=dry_run
         )
+
+class BotCommandModifiedAddons(BotCommand):  
+    
+    def delay(self, org, repo, pr, username, dry_run=False):
+        add_modified_addons_to_ogir.add_modified_addons_to_ogir.delay(
+            org, repo, pr, dry_run=dry_run
+        )
+
+class BotCommandBetaMerge(BotCommand):  
+    
+    def delay(self, org, repo, pr, username, dry_run=False):
+        beta_bot.beta_bot_start.delay(
+            org, repo, pr, username, dry_run=dry_run
+        )
+
 
 def parse_commands(text):
     """Parse a text and return an iterator of BotCommand objects."""

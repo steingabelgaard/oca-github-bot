@@ -29,4 +29,4 @@ async def on_pr_close_delete_branch(event, gh, *args, **kwargs):
     if not forked and merged and not is_protected_branch(branch):
         delete_branch.delay(org, repo, branch)
     update_pr_state.delay(org, repo, pr, merged)
-    add_modified_addons_to_ogir.delay(org, repo, pr)
+    # add_modified_addons_to_ogir.delay(org, repo, pr)
