@@ -10,11 +10,16 @@ from ..config import (
     dist_publisher,
     switchable,
 )
-from ..github import git_push_if_needed, temporary_clone
+from ..manifest import (
+    addon_dirs_in,
+    get_addon_name,
+)
+from ..github import git_push_if_needed, git_commit_if_needed, temporary_clone
 from ..manifest import get_odoo_series_from_branch
-from ..process import check_call
+from ..process import call, check_call
 from ..queue import getLogger, task
 from ..version_branch import is_main_branch_bot_branch
+import os
 
 _logger = getLogger(__name__)
 
@@ -71,6 +76,34 @@ def _setuptools_odoo_make_default(org, repo, branch, cwd):
         make_default_setup_cmd, cwd=cwd, extra_cmd_args=GEN_ADDON_ICON_EXTRA_ARGS
     )
 
+@switchable("copypot")
+def _copypot(org, repo, branch, cwd):
+    beta_branch = '%s-beta' % branch
+    origin_branch = 'origin/%s' % beta_branch
+    fetch_cmd = ['git', 'fetch', 'origin', beta_branch]
+    if not call(fetch_cmd, cwd=cwd):
+        commit_message = "[ci skip] Copy .po/.pot for {addon_name}"
+        addon_dirs = addon_dirs_in(cwd, installable_only=True)
+        _logger.info('ADDONS: %s', addon_dirs)
+        for addon_dir in addon_dirs:
+            addon = get_addon_name(addon_dir)
+            _logger.info('ADDON: %s', addon)
+            pot_filepath = os.path.join(addon, 'i18n', addon + '.pot')
+            _logger.info('POT: %s', pot_filepath)
+            check_call(['git', 'checkout', origin_branch, '--', pot_filepath], cwd=cwd)
+            po_filepath = os.path.join(addon, 'i18n', 'da.po')
+            check_call(['git', 'checkout', origin_branch, '--', po_filepath], cwd=cwd)
+            files_to_commit = set()
+            if os.path.exists(pot_filepath):
+                files_to_commit.add(pot_filepath)
+            if os.path.exists(po_filepath):
+                files_to_commit.add(po_filepath)
+            if files_to_commit:
+                commit_if_needed(
+                    list(files_to_commit),
+                    commit_message.format(addon_name=addon),
+                )
+
 
 def main_branch_bot_actions(org, repo, branch, cwd):
     """
@@ -87,6 +120,8 @@ def main_branch_bot_actions(org, repo, branch, cwd):
     _gen_addons_icon(org, repo, branch, cwd)
     # generate/clean default setup.py
     _setuptools_odoo_make_default(org, repo, branch, cwd)
+    # Copy .po/.pot files from beta branch
+    _copypot(org, repo, branch, cwd)
 
 
 @task()

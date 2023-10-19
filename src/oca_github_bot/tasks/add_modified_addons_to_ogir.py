@@ -46,7 +46,7 @@ def add_modified_addons_to_ogir(org, repo, pr, dry_run=False):
             body = gh_pr.issue().body
             if not body:
                 body = ''
-            if task_comment not in body:
+            if "Addons:\n" not in body:    
                 body += '\n\n' + task_comment
                 body = gh_pr.issue().edit(body=body)
             with odoo_client.login() as odoo:

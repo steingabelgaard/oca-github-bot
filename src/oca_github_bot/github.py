@@ -144,6 +144,19 @@ def git_push_if_needed(remote, branch, cwd=None):
             raise
     return True
 
+def git_commit_if_needed(paths, message, add=True):
+    if add:
+        cmd = ["git", "add"] + paths
+        check_call(cmd)
+    cmd = ["git", "diff", "--quiet", "--exit-code", "--cached", "--"] + paths
+    r = call(cmd)
+    if r != 0:
+        cmd = ["git", "commit", "-m", message, "--"] + paths
+        check_call(cmd)
+        return True
+    else:
+        return False
+
 
 def github_user_can_push(gh_repo, username):
     for collaborator in gh_call(gh_repo.collaborators):

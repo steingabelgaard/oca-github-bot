@@ -35,4 +35,8 @@ def add_sgtask_info(org, repo, pr, dry_run=False):
                     body += '\n\n' + task_comment
                     body = gh_pr.issue().edit(body=body)
                 # return github.gh_call(gh_pr.create_comment, task_comment)
+        # Add milestone
+        for milestone in gh_pr.repository.milestones():
+            if gh_pr.base.ref == milestone.title:
+                gh_pr.issue().edit(milestone=milestone.number)
         

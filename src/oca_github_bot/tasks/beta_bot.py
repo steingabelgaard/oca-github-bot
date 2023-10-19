@@ -30,7 +30,7 @@ _logger = getLogger(__name__)
 
 LABEL_BETA = "beta"
 
-def _remove_beta_label(github, gh_pr, dry_run=False):
+def _remove_beta_label(gh, gh_pr, dry_run=False):
     gh_issue = github.gh_call(gh_pr.issue)
     labels = [label.name for label in gh_issue.labels()]
     if LABEL_BETA in labels:
@@ -50,7 +50,7 @@ def beta_bot_remove_label(
 ):
     with github.login() as gh:
         gh_pr = gh.pull_request(org, repo, pr)
-        _remove_beta_label(gh, gh_pr, dry_run=False):
+        _remove_beta_label(gh, gh_pr, dry_run=False)
 
 @task()
 @switchable("beta_bot")
@@ -108,7 +108,7 @@ def beta_bot_start(
                     gh_pr.create_comment,
                     f"Merged to {target_branch}\n"
                 )
-                github.gh_call(gh_issue.add_labels, LABEL_BETA)
+                github.gh_call(gh_pr.issue().add_labels, LABEL_BETA)
         except CalledProcessError as e:
             cmd = " ".join(e.cmd)
             github.gh_call(

@@ -11,4 +11,5 @@ from . import (
     on_push_to_main_branch,
     on_status_merge_bot,
     on_pr_add_sgtask_info,
+    on_pr_update,
 )
