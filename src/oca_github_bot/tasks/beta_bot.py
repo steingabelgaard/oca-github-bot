@@ -29,6 +29,7 @@ from .merge_bot import MergeStrategy
 _logger = getLogger(__name__)
 
 LABEL_BETA = "beta"
+LABEL_WIP = "work in progress"
 
 def _remove_beta_label(gh, gh_pr, dry_run=False):
     gh_issue = github.gh_call(gh_pr.issue)
@@ -64,6 +65,8 @@ def beta_bot_start(
 ):
     with github.login() as gh:
         gh_pr = gh.pull_request(org, repo, pr)
+        if not username:
+            username = gh_pr.user.login
         target_branch = gh_pr.base.ref + "-beta"
         pr_branch = f"tmp-beta-{pr}"
         try:
@@ -128,3 +131,21 @@ def beta_bot_start(
                 ),
             )
             raise
+
+@task()
+@switchable("auto_beta")
+def merge_beta_on_success(org, pr, repo, conclusion, dry_run=False):
+    """On a successful execution of the CI tests, adds the `needs review`
+    label to the pull request if it doesn't have `wip:` at the
+    begining of the title (case insensitive). Removes the tag if the CI
+    fails.
+    """
+    with github.repository(org, repo) as gh_repo:
+        gh_pr = github.gh_call(gh_repo.pull_request, pr)
+        gh_issue = github.gh_call(gh_pr.issue)
+        labels = [label.name for label in gh_issue.labels()]
+        has_wip = (
+            gh_pr.title.lower().startswith(("wip:", "[wip]")) or LABEL_WIP in labels
+        )
+        if conclusion == "success" and not has_wip:
+            beta_bot_start(org, repo, pr, False)

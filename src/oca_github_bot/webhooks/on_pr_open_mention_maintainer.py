@@ -19,4 +19,4 @@ async def on_pr_open_mention_maintainer(event, *args, **kwargs):
     org, repo = event.data["repository"]["full_name"].split("/")
     pr = event.data["pull_request"]["number"]
     mention_maintainer.delay(org, repo, pr)
-    add_modified_addons_to_ogir.delay(org, repo, pr)
+    add_modified_addons_to_ogir.apply_async((org, repo, pr), countdown=10)
