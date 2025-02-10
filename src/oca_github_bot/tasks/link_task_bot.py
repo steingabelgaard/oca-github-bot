@@ -11,6 +11,7 @@ def task_link_start(org, repo, pr, username, task_code=None, dry_run=False):
         gh_pr = gh.pull_request(org, repo, pr)
         with odoo_client.login() as odoo:
             task_id = False
+            comment = False
             Tasks = odoo.env['project.task']
             task_ids = Tasks.search([('code', '=', task_code)])
             for task in Tasks.browse(task_ids):

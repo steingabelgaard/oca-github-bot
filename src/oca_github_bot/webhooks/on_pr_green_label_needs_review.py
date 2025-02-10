@@ -11,8 +11,9 @@ async def on_pr_green_label_needs_review(event, gh, *args, **kwargs):
     execution of the CI
     """
     status = event.data["check_suite"]["conclusion"]
+    head_sha = event.data['check_suite']['head_sha']
     org, repo = event.data["repository"]["full_name"].split("/")
     for pr in event.data["check_suite"]["pull_requests"]:
         tag_needs_review.delay(org, pr["number"], repo, status)
         add_modified_addons_to_ogir.delay(org, repo, pr["number"])
-        merge_beta_on_success.delay(org, pr["number"], repo, status)
+        merge_beta_on_success.delay(org, pr["number"], repo, status, head_sha)

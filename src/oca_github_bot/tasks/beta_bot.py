@@ -29,6 +29,7 @@ from .merge_bot import MergeStrategy
 _logger = getLogger(__name__)
 
 LABEL_BETA = "beta"
+LABEL_BETA_FAILED = "beta merge failed"
 LABEL_WIP = "work in progress"
 
 def _remove_beta_label(gh, gh_pr, dry_run=False):
@@ -40,6 +41,13 @@ def _remove_beta_label(gh, gh_pr, dry_run=False):
         else:
             _logger.info(f"remove {LABEL_BETA} label from PR {gh_pr.url}")
             github.gh_call(gh_issue.remove_label, LABEL_BETA)
+    if LABEL_BETA_FAILED in labels:
+        if dry_run:
+            _logger.info(f"DRY-RUN remove {LABEL_BETA_FAILED} label from PR {gh_pr.url}")
+        else:
+            _logger.info(f"remove {LABEL_BETA_FAILED} label from PR {gh_pr.url}")
+            github.gh_call(gh_issue.remove_label, LABEL_BETA_FAILED)
+
 
 @task()
 @switchable("beta_bot")
@@ -119,8 +127,9 @@ def beta_bot_start(
                 hide_secrets(
                     f"@{username} The merge process could not start, because "
                     f"command `{cmd}` failed with output:\n```\n{e.output}\n```"
-                ),
+                ),              
             )
+            github.gh_call(gh_pr.issue().add_labels, LABEL_BETA_FAILED)
             raise
         except Exception as e:
             github.gh_call(
@@ -134,7 +143,7 @@ def beta_bot_start(
 
 @task()
 @switchable("auto_beta")
-def merge_beta_on_success(org, pr, repo, conclusion, dry_run=False):
+def merge_beta_on_success(org, pr, repo, conclusion, head_sha, dry_run=False):
     """On a successful execution of the CI tests, adds the `needs review`
     label to the pull request if it doesn't have `wip:` at the
     begining of the title (case insensitive). Removes the tag if the CI
@@ -147,5 +156,19 @@ def merge_beta_on_success(org, pr, repo, conclusion, dry_run=False):
         has_wip = (
             gh_pr.title.lower().startswith(("wip:", "[wip]")) or LABEL_WIP in labels
         )
-        if conclusion == "success" and not has_wip:
+        check_completed = True  # We test for failure in the loop
+        commit = gh_repo.commit(head_sha) 
+        check_runs = list(commit.check_runs())
+        for cr in check_runs:
+            _logger.info(f"Checking status for PR: {gh_pr.url} - {cr.name} - {cr.status} - {cr.conclusion}")
+            if cr.status != 'completed':
+                check_completed = False
+                break
+            if cr.conclusion != 'success':
+                check_completed = False
+                break
+
+        _logger.info(f"Checking status for PR: {gh_pr.url} - {check_completed} - {conclusion} - {head_sha}")
+
+        if conclusion == "success" and check_completed and not has_wip:
             beta_bot_start(org, repo, pr, False)
